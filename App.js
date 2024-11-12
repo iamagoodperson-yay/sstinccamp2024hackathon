@@ -1,208 +1,171 @@
-import React, {Component} from 'react';
-import {View, Text, TouchableOpacity, Button, StyleSheet} from 'react-native';
-import {Provider as PaperProvider, Appbar} from 'react-native-paper';
+import React, { useState } from 'react';
+import {
+  View,
+  Text,
+  Image,
+  StyleSheet,
+  Dimensions,
+  TouchableOpacity,
+} from 'react-native';
+import { NavigationContainer } from '@react-navigation/native';
 
-class TicTacToe extends Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      squares: Array(9).fill(null),
-      xIsNext: true,
-      xTurns: 0,
-      oTurns: 0,
-      movePhase: false,
-    };
-  }
+const windowWidth = Dimensions.get('window').width;
 
-  handleClick(i) {
-    const squares = this.state.squares.slice();
-    if (calculateWinner(squares) || squares[i]) {
-      return;
-    }
+export default function App() {
+  const [selectedPlayers, setSelectedPlayers] = useState(2);
 
-    if (this.state.movePhase) {
-      // Logic for moving pieces
-      if (this.state.xIsNext && squares[i] === 'O') {
-        squares[i] = 'X';
-      } else if (!this.state.xIsNext && squares[i] === 'X') {
-        squares[i] = 'O';
-      } else {
-        return;
+  return (
+    <NavigationContainer>
+      {
+        <View style={styles.container}>
+          {/* Welcome Section */}
+          <View style={styles.welcome}>
+            <Text style={styles.title}>Welcome</Text>
+            <Image
+              style={{
+                ...styles.image,
+                width: 20,
+                height: 30,
+                right: 10,
+                bottom: 7,
+              }}
+              source={require('./assets/Startup.svg')}
+            />
+            <Image
+              style={{ ...styles.image }}
+              source={require('./assets/tictactoe.png')}
+            />
+          </View>
+
+          {/* Rules Section */}
+          <View style={styles.rules}>
+            <Text style={{ ...styles.title, marginBottom: 10 }}>Rules</Text>
+            <View style={{ maxWidth: 250 }}>
+              <Text style={styles.body}>- Each player gets 3 pieces</Text>
+              <Text style={styles.body}>
+                - You are only able to move one piece at a time
+              </Text>
+              <Text style={styles.body}>
+                - Light orange means wait your turn
+              </Text>
+              <Text style={styles.body}>
+                - Dark orange means it’s your turn
+              </Text>
+              <Text style={styles.body}>- Lastly, have fun!</Text>
+            </View>
+          </View>
+
+          {/* Player Selection */}
+          <View style={styles.playerSelection}>
+            {[2, 3, 4].map((num) => (
+              <TouchableOpacity
+                key={num}
+                onPress={() => setSelectedPlayers(num)}
+                style={[
+                  styles.playerOption,
+                  num === 2
+                    ? styles.leftRound
+                    : num === 4
+                    ? styles.rightRound
+                    : null,
+                  selectedPlayers === num && styles.selectedPlayer,
+                ]}>
+                <Text style={styles.pickerText}>{num}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+
+          {/* Start Button */}
+          <TouchableOpacity style={styles.button}>
+            <Text style={styles.title}>Start Game!</Text>
+          </TouchableOpacity>
+        </View>
       }
-    } else {
-      squares[i] = this.state.xIsNext ? 'X' : 'O';
-      if (this.state.xIsNext) {
-        this.setState({xTurns: this.state.xTurns + 1});
-      } else {
-        this.setState({oTurns: this.state.oTurns + 1});
-      }
-    }
-
-    this.setState({
-      squares: squares,
-      xIsNext: !this.state.xIsNext,
-      movePhase: this.state.xTurns >= 3 && this.state.oTurns >= 3,
-    });
-  }
-
-  restartGame() {
-    this.setState({
-      squares: Array(9).fill(null),
-      xIsNext: true,
-      xTurns: 0,
-      oTurns: 0,
-      movePhase: false,
-    });
-  }
-
-  renderSquare(i) {
-    return (
-      <TouchableOpacity
-        onPress={() => this.handleClick(i)}
-        style={styles.square}>
-        <Text style={styles.squareText}>{this.state.squares[i]}</Text>
-      </TouchableOpacity>
-    );
-  }
-
-  render() {
-    const winner = calculateWinner(this.state.squares);
-    let status;
-    if (winner) {
-      status = 'Winner: ' + winner;
-    } else if (this.state.movePhase) {
-      status =
-        'Move Phase: ' +
-        (this.state.xIsNext ? 'X' : 'O') +
-        " to move opponent's piece";
-    } else {
-      status = 'Current player: ' + (this.state.xIsNext ? 'X' : 'O');
-    }
-
-    return (
-      <View style={styles.container}>
-        <Text style={styles.title}>Tic Tac Toe</Text>
-        <Text style={styles.news}>{status}</Text>
-        <View style={styles.turnBox}>
-          <Text style={[styles.status, {transform: [{rotate: '180deg'}]}]}>
-            {this.state.xIsNext ? 'Wait...' : 'Your turn'}
-          </Text>
-        </View>
-        <View style={styles.board}>
-          {this.renderSquare(0)}
-          {this.renderSquare(1)}
-          {this.renderSquare(2)}
-          {this.renderSquare(3)}
-          {this.renderSquare(4)}
-          {this.renderSquare(5)}
-          {this.renderSquare(6)}
-          {this.renderSquare(7)}
-          {this.renderSquare(8)}
-        </View>
-        <View style={styles.turnBox}>
-          <Text style={styles.status}>
-            {this.state.xIsNext ? 'Your turn' : 'Wait...'}
-          </Text>
-        </View>
-        <Button
-          title="Restart Game"
-          onPress={() => this.restartGame()}
-          style={styles.restartButton}
-        />
-      </View>
-    );
-  }
+    </NavigationContainer>
+  );
 }
 
+// Stylings
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#F5FCFF',
+  },
+  pickerText: {
+    fontSize: 30,
+    color: '#000',
+  },
+  body: {
+    fontSize: 20,
   },
   title: {
-    fontSize: 30,
-    fontWeight: 'bold',
+    fontSize: 40,
+    fontWeight: '600',
+  },
+  welcome: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    width: windowWidth,
+    paddingHorizontal: 24,
+    gap: 20,
     marginBottom: 20,
   },
-  board: {
-    width: 300,
-    height: 300,
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    backgroundColor: '#333',
-    borderRadius: 10,
-    padding: 5,
-    marginVertical: 15,
+  image: {
+    height: 85,
+    width: 72,
   },
-  square: {
-    width: '30%',
-    height: '30%',
+  rules: {
+    alignItems: 'flex-start',
+    padding: 20,
+    width: 280,
+    backgroundColor: '#FF5733',
+    borderRadius: 15,
+    marginBottom: 20,
+    shadowColor: '#000', // Dark shadow for the icon and text shadow
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 10,
+    elevation: 8,
+    borderWidth: 5,
+    borderColor: '#723227',
+  },
+  playerSelection: {
+    marginBottom: 20,
+    flexDirection: 'row',
+    gap: 5,
+  },
+  playerOption: {
+    backgroundColor: '#D9D9D9',
+    width: 90,
+    height: 40,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#fff',
-    margin: '1.5%',
+  },
+  leftRound: {
+    borderTopLeftRadius: 20,
+    borderBottomLeftRadius: 20,
+  },
+  rightRound: {
+    borderTopRightRadius: 20,
+    borderBottomRightRadius: 20,
+  },
+  selectedPlayer: {
+    backgroundColor: '#BF3E22',
+  },
+  button: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: 300,
+    height: 70,
+    paddingVertical: 10,
+    paddingHorizontal: 20,
     borderRadius: 10,
-    shadowColor: '#000',
-    shadowOffset: {width: 0, height: 2},
-    shadowOpacity: 0.8,
-    shadowRadius: 2,
-    elevation: 5,
-  },
-  squareText: {
-    fontSize: 45,
-    fontWeight: 'bold',
-    color: '#333',
-  },
-  status: {
-    marginVertical: 20,
-    fontSize: 30,
-    fontWeight: '600',
-    marginLeft: 20,
-  },
-  news: {
-    marginVertical: 20,
-    fontSize: 20,
-    fontWeight: '600',
-  },
-  turnBox: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    width: '90%',
     backgroundColor: '#FF5733',
-  },
-  restartButton: {
-    marginTop: 20,
+    shadowColor: '#723227', // Color from the screenshot
+    shadowOffset: { width: 0, height: 4 }, // X: 0, Y: 4
+    shadowOpacity: 0.5, // Adjust as desired; 0.5 is a good starting point
+    shadowRadius: 4, // Blur radius
+    elevation: 4, // Required for shadow on Android
   },
 });
-
-// Function to determine the winner
-function calculateWinner(squares) {
-  const lines = [
-    [0, 1, 2],
-    [3, 4, 5],
-    [6, 7, 8],
-    [0, 3, 6],
-    [1, 4, 7],
-    [2, 5, 8],
-    [0, 4, 8],
-    [2, 4, 6],
-  ];
-  for (let i = 0; i < lines.length; i++) {
-    const [a, b, c] = lines[i];
-    if (squares[a] && squares[a] === squares[b] && squares[a] === squares[c]) {
-      return squares[a];
-    }
-  }
-  return null;
-}
-
-// Return the entire component
-export default function App() {
-  return (
-    <PaperProvider>
-      <TicTacToe />
-    </PaperProvider>
-  );
-}
